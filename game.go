@@ -24,6 +24,8 @@ func (g *Game) Update() error {
 		os.Exit(0)
 	}
 
+	ball.Move()
+
 	return nil
 }
 
