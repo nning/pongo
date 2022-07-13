@@ -1,10 +1,12 @@
 package main
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"image/color"
 	"log"
+	"os"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 const (
@@ -13,6 +15,7 @@ const (
 	margin       float64 = 150
 	paddleWidth          = screenWidth / 50
 	paddleHeight         = screenHeight / 4
+	speed                = 15
 )
 
 type Paddle struct {
@@ -26,6 +29,19 @@ func (p *Paddle) Draw(screen *ebiten.Image) {
 	ebitenutil.DrawRect(screen, p.x, p.y, p.width, p.height, color.White)
 }
 
+func (p *Paddle) Move(dy float64) {
+	if inBounds(p.y + dy) {
+		p.y += dy
+		return
+	}
+
+	if dy > 0 {
+		p.y = screenHeight - paddleHeight
+	} else {
+		p.y = 0
+	}
+}
+
 func NewPaddle(x float64) *Paddle {
 	return &Paddle{x, screenHeight/2 - paddleHeight/2, paddleWidth, paddleHeight}
 }
@@ -33,7 +49,27 @@ func NewPaddle(x float64) *Paddle {
 type Game struct {
 }
 
+func inBounds(y float64) bool {
+	return y >= 0 && y <= screenHeight-paddleHeight
+}
+
+func movePaddle(key ebiten.Key, p *Paddle, dy float64) {
+	if ebiten.IsKeyPressed(key) {
+		p.Move(dy)
+	}
+}
+
 func (g *Game) Update() error {
+	movePaddle(ebiten.KeyW, p1, -speed)
+	movePaddle(ebiten.KeyS, p1, speed)
+
+	movePaddle(ebiten.KeyUp, p2, -speed)
+	movePaddle(ebiten.KeyDown, p2, speed)
+
+	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
+		os.Exit(0)
+	}
+
 	return nil
 }
 
