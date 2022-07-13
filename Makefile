@@ -1,4 +1,4 @@
-.PHONY: install_dependencies run
+.PHONY: install_dependencies run clean
 
 SOURCES = $(shell find . -name \*.go)
 BIN = pongo
