@@ -23,7 +23,7 @@ func (p *Paddle) Draw(screen *ebiten.Image) {
 }
 
 func (p *Paddle) Move(dy float64) {
-	if inBounds(p.y + dy) {
+	if inScreenBounds(p.x, p.y+dy, p.width, p.height) {
 		p.y += dy
 		return
 	}

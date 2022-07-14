@@ -26,8 +26,14 @@ func (b *Ball) Draw(screen *ebiten.Image) {
 }
 
 func (b *Ball) Move() {
-	b.x += b.vx * ballSpeed
-	b.y += b.vy * ballSpeed
+	dx := b.vx * ballSpeed
+	dy := b.vy * ballSpeed
+
+	if inScreenBounds(b.x+dx, b.y+dy, ballSize, ballSize) {
+		b.x += dx
+		b.y += dy
+	}
+
 }
 
 func NewBall() *Ball {

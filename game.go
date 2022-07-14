@@ -13,6 +13,10 @@ func inBounds(y float64) bool {
 	return y >= 0 && y <= screenHeight-paddleHeight
 }
 
+func inScreenBounds(x, y, w, h float64) bool {
+	return x >= 0 && x+w <= screenWidth && y >= 0 && y+h <= screenHeight
+}
+
 func (g *Game) Update() error {
 	movePaddle(ebiten.KeyW, paddle1, -paddleSpeed)
 	movePaddle(ebiten.KeyS, paddle1, paddleSpeed)
