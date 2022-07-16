@@ -8,8 +8,8 @@ build: $(BIN)
 $(BIN): $(SOURCES)
 	go build
 
-run:
-	go run .
+run: $(BIN)
+	./$(BIN)
 
 install_dependencies:
 	sudo dnf install mesa-libGLU-devel mesa-libGLES-devel libXrandr-devel \
