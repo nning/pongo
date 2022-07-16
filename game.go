@@ -4,13 +4,10 @@ import (
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type Game struct {
-}
-
-func inBounds(y float64) bool {
-	return y >= 0 && y <= screenHeight-paddleHeight
 }
 
 func inScreenBounds(x, y, w, h float64) bool {
@@ -24,11 +21,15 @@ func (g *Game) Update() error {
 	movePaddle(ebiten.KeyUp, paddle2, -paddleSpeed)
 	movePaddle(ebiten.KeyDown, paddle2, paddleSpeed)
 
+	ball.Move()
+
 	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
 		os.Exit(0)
 	}
 
-	ball.Move()
+	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
+		ebiten.SetFullscreen(!ebiten.IsFullscreen())
+	}
 
 	return nil
 }
