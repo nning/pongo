@@ -16,8 +16,11 @@ var paddle2 = NewPaddle(screenWidth - paddleMargin - paddleWidth)
 var ball = NewBall()
 
 func main() {
-	ebiten.SetWindowSize(1920, 1080)
 	ebiten.SetWindowTitle("pongo")
+
+	c := NewConfig().Load()
+	ebiten.SetWindowSize(c.Width, c.Height)
+	ebiten.SetFullscreen(c.Fullscreen)
 
 	if err := ebiten.RunGame(&Game{}); err != nil {
 		log.Fatal(err)
