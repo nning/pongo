@@ -8,22 +8,53 @@ import (
 )
 
 type Game struct {
+	config           *Config
+	ball             *Ball
+	paddle1, paddle2 *Paddle
 }
 
 func inScreenBounds(x, y, w, h float64) bool {
-	return x >= 0 && x+w <= screenWidth && y >= 0 && y+h <= screenHeight
+	return checkBounds(x, y, w, h) == 0
+}
+
+func checkBounds(x, y, w, h float64) int {
+	if x <= 0 {
+		return 4 // left
+	}
+
+	if x+w >= screenWidth {
+		return 2 // right
+	}
+
+	if y <= 0 {
+		return 1 // top
+	}
+
+	if y+h >= screenHeight {
+		return 3 // bottom
+	}
+
+	return 0
+}
+
+func rectCollision(r1, r2 *rect) bool {
+	return r1.x+r1.w >= r2.x && r1.x <= r2.x+r2.w && r1.y+r1.h >= r2.y && r1.y <= r2.y+r2.h
 }
 
 func (g *Game) Update() error {
-	movePaddle(ebiten.KeyW, paddle1, -paddleSpeed)
-	movePaddle(ebiten.KeyS, paddle1, paddleSpeed)
+	movePaddle(ebiten.KeyW, g.paddle1, -paddleSpeed)
+	movePaddle(ebiten.KeyS, g.paddle1, paddleSpeed)
 
-	movePaddle(ebiten.KeyUp, paddle2, -paddleSpeed)
-	movePaddle(ebiten.KeyDown, paddle2, paddleSpeed)
+	movePaddle(ebiten.KeyUp, g.paddle2, -paddleSpeed)
+	movePaddle(ebiten.KeyDown, g.paddle2, paddleSpeed)
 
-	ball.Move()
+	g.ball.Move(g)
 
 	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
+		os.Exit(0)
+	}
+
+	if g.config.Debug && ebiten.IsKeyPressed(ebiten.KeyQ) {
 		os.Exit(0)
 	}
 
@@ -35,13 +66,22 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	for _, p := range []*Paddle{paddle1, paddle2} {
+	for _, p := range []*Paddle{g.paddle1, g.paddle2} {
 		p.Draw(screen)
 	}
 
-	ball.Draw(screen)
+	g.ball.Draw(screen)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return screenWidth, screenHeight
+}
+
+func NewGame(c *Config) *Game {
+	return &Game{
+		config:  c,
+		ball:    NewBall(c.BallSpeed, c.BallAcceleration),
+		paddle1: NewPaddle(paddleMargin),
+		paddle2: NewPaddle(screenWidth - paddleMargin - paddleWidth),
+	}
 }

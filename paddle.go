@@ -8,22 +8,22 @@ import (
 )
 
 const (
-	paddleMargin float64 = 150
+	paddleMargin float64 = 100
 	paddleWidth          = screenWidth / 50
 	paddleHeight         = screenHeight / 4
 	paddleSpeed          = 15
 )
 
 type Paddle struct {
-	x, y, width, height float64
+	rect
 }
 
 func (p *Paddle) Draw(screen *ebiten.Image) {
-	ebitenutil.DrawRect(screen, p.x, p.y, p.width, p.height, color.White)
+	ebitenutil.DrawRect(screen, p.x, p.y, p.w, p.h, color.White)
 }
 
 func (p *Paddle) Move(dy float64) {
-	if inScreenBounds(p.x, p.y+dy, p.width, p.height) {
+	if inScreenBounds(p.x, p.y+dy, p.w, p.h) {
 		p.y += dy
 		return
 	}
@@ -36,7 +36,7 @@ func (p *Paddle) Move(dy float64) {
 }
 
 func NewPaddle(x float64) *Paddle {
-	return &Paddle{x, screenHeight/2 - paddleHeight/2, paddleWidth, paddleHeight}
+	return &Paddle{rect{x, screenHeight/2 - paddleHeight/2, paddleWidth, paddleHeight}}
 }
 
 func movePaddle(key ebiten.Key, p *Paddle, dy float64) {

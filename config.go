@@ -10,10 +10,13 @@ import (
 )
 
 type Config struct {
-	Resolution string `yaml:"resolution"`
-	Width      int    `yaml:"width"`
-	Height     int    `yaml:"height"`
-	Fullscreen bool   `yaml:"fullscreen"`
+	Resolution       string  `yaml:"resolution"`
+	Width            int     `yaml:"width"`
+	Height           int     `yaml:"height"`
+	Fullscreen       bool    `yaml:"fullscreen"`
+	Debug            bool    `yaml:"debug"`
+	BallSpeed        float64 `yaml:"ballSpeed"`
+	BallAcceleration float64 `yaml:"ballAcceleration"`
 
 	path string
 }
@@ -49,10 +52,13 @@ func (c *Config) Load() *Config {
 
 func NewConfig() *Config {
 	return &Config{
-		Resolution: "1280x720",
-		Width:      1280,
-		Height:     720,
-		Fullscreen: false,
-		path:       "config.yml",
+		Resolution:       "1280x720",
+		Width:            1280,
+		Height:           720,
+		Fullscreen:       false,
+		BallSpeed:        5,
+		BallAcceleration: 1.1,
+
+		path: "config.yml",
 	}
 }

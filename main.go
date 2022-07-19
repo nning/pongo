@@ -11,9 +11,13 @@ const (
 	screenHeight = 1080
 )
 
-var paddle1 = NewPaddle(paddleMargin)
-var paddle2 = NewPaddle(screenWidth - paddleMargin - paddleWidth)
-var ball = NewBall()
+type rect struct {
+	x, y, w, h float64
+}
+
+type vector struct {
+	vx, vy float64
+}
 
 func main() {
 	ebiten.SetWindowTitle("pongo")
@@ -22,7 +26,7 @@ func main() {
 	ebiten.SetWindowSize(c.Width, c.Height)
 	ebiten.SetFullscreen(c.Fullscreen)
 
-	if err := ebiten.RunGame(&Game{}); err != nil {
+	if err := ebiten.RunGame(NewGame(c)); err != nil {
 		log.Fatal(err)
 	}
 }
