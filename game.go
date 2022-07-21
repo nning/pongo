@@ -12,6 +12,9 @@ type Game struct {
 	config           *Config
 	ball             *Ball
 	paddle1, paddle2 *Paddle
+
+	gamepadIDsBuf []ebiten.GamepadID
+	gamepadIDs    map[ebiten.GamepadID]struct{}
 }
 
 func inScreenBounds(x, y, w, h float64) bool {
@@ -42,7 +45,49 @@ func rectCollision(r1, r2 *rect) bool {
 	return r1.x+r1.w >= r2.x && r1.x <= r2.x+r2.w && r1.y+r1.h >= r2.y && r1.y <= r2.y+r2.h
 }
 
+func (g *Game) handleGamepadConnections() {
+	if g.gamepadIDs == nil {
+		g.gamepadIDs = map[ebiten.GamepadID]struct{}{}
+	}
+
+	g.gamepadIDsBuf = inpututil.AppendJustConnectedGamepadIDs(g.gamepadIDsBuf[:0])
+	for _, id := range g.gamepadIDsBuf {
+		g.gamepadIDs[id] = struct{}{}
+	}
+
+	for id := range g.gamepadIDs {
+		if inpututil.IsGamepadJustDisconnected(id) {
+			delete(g.gamepadIDs, id)
+		}
+	}
+}
+
+func (g *Game) handleGamepadInput() {
+	for id := range g.gamepadIDs {
+		leftStickY := ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickVertical)
+		if leftStickY > 0.1 || leftStickY < -0.1 {
+			g.paddle1.Move(leftStickY * paddleSpeed)
+		}
+
+		rightStickY := ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisRightStickVertical)
+		if rightStickY > 0.1 || rightStickY < -0.1 {
+			g.paddle2.Move(rightStickY * paddleSpeed)
+		}
+
+		if inpututil.IsStandardGamepadButtonJustPressed(id, ebiten.StandardGamepadButtonCenterLeft) {
+			os.Exit(0)
+		}
+
+		if inpututil.IsStandardGamepadButtonJustPressed(id, ebiten.StandardGamepadButtonCenterRight) {
+			os.Exit(0)
+		}
+	}
+}
+
 func (g *Game) Update() error {
+	g.handleGamepadConnections()
+	g.handleGamepadInput()
+
 	movePaddle(ebiten.KeyW, g.paddle1, -paddleSpeed)
 	movePaddle(ebiten.KeyS, g.paddle1, paddleSpeed)
 
@@ -68,7 +113,7 @@ func (g *Game) Update() error {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
 
-	fmt.Printf("%d:%d\n", g.paddle1.score, g.paddle2.score)
+	ebiten.SetWindowTitle(fmt.Sprintf("%d : %d", g.paddle1.score, g.paddle2.score))
 
 	return nil
 }
