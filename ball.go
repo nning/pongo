@@ -22,7 +22,7 @@ func (b *Ball) Draw(screen *ebiten.Image) {
 	ebitenutil.DrawRect(screen, b.x, b.y, ballSize, ballSize, color.White)
 }
 
-func (b *Ball) Move(g *Game) {
+func (b *Ball) Move(g *Game) int {
 	dx := b.vx * b.speed
 	dy := b.vy * b.speed
 
@@ -46,6 +46,8 @@ func (b *Ball) Move(g *Game) {
 		b.vx = -b.vx
 		b.speed *= b.acceleration
 	}
+
+	return screenCollision
 }
 
 func NewBall(speed, acceleration float64) *Ball {

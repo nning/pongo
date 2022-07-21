@@ -16,6 +16,7 @@ const (
 
 type Paddle struct {
 	rect
+	score int
 }
 
 func (p *Paddle) Draw(screen *ebiten.Image) {
@@ -36,7 +37,7 @@ func (p *Paddle) Move(dy float64) {
 }
 
 func NewPaddle(x float64) *Paddle {
-	return &Paddle{rect{x, screenHeight/2 - paddleHeight/2, paddleWidth, paddleHeight}}
+	return &Paddle{rect{x, screenHeight/2 - paddleHeight/2, paddleWidth, paddleHeight}, 0}
 }
 
 func movePaddle(key ebiten.Key, p *Paddle, dy float64) {

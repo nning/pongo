@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -48,7 +49,12 @@ func (g *Game) Update() error {
 	movePaddle(ebiten.KeyUp, g.paddle2, -paddleSpeed)
 	movePaddle(ebiten.KeyDown, g.paddle2, paddleSpeed)
 
-	g.ball.Move(g)
+	screenCollision := g.ball.Move(g)
+	if screenCollision == 2 {
+		g.paddle1.score++
+	} else if screenCollision == 4 {
+		g.paddle2.score++
+	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
 		os.Exit(0)
@@ -61,6 +67,8 @@ func (g *Game) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
+
+	fmt.Printf("%d:%d\n", g.paddle1.score, g.paddle2.score)
 
 	return nil
 }
