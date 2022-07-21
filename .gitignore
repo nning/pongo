@@ -1,4 +1,5 @@
 pongo
 .idea
-config.yml
+/config.yml
 .vscode
+.cache

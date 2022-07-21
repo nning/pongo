@@ -1,0 +1,14 @@
+# Game resolution
+resolution: 1280x800
+
+# Toggle fullscreen (also possible with F key in game)
+fullscreen: true
+
+# Currently only controlls whether Q key quits game
+debug: false
+
+# Initial ball speed (float64 value of pixels per frame)
+ballSpeed: 10
+
+# Ball acceleration on paddle collision (float64 value of factor)
+ballAcceleration: 1.125
