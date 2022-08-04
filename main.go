@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -26,7 +24,13 @@ func main() {
 	ebiten.SetWindowSize(c.Width, c.Height)
 	ebiten.SetFullscreen(c.Fullscreen)
 
-	if err := ebiten.RunGame(NewGame(c)); err != nil {
-		log.Fatal(err)
-	}
+	g := NewGame(c)
+
+	go g.net.Announce()
+	g.net.Listen()
+
+	// if err := ebiten.RunGame(g); err != nil {
+	// 	log.Fatal(err)
+	// }
+	select {}
 }

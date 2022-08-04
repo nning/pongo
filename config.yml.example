@@ -12,3 +12,7 @@ ballSpeed: 5
 
 # Ball acceleration on paddle collision (float64 value of factor)
 ballAcceleration: 1.1
+
+# Network interfaces to accept other players on
+listenInterfaces:
+  - wlp2s0

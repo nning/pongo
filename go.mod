@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.3.6
+	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f
 	gopkg.in/yaml.v3 v3.0.1
 )
 

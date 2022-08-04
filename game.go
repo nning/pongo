@@ -15,6 +15,8 @@ type Game struct {
 
 	gamepadIDsBuf []ebiten.GamepadID
 	gamepadIDs    map[ebiten.GamepadID]struct{}
+
+	net *Net
 }
 
 func inScreenBounds(x, y, w, h float64) bool {
@@ -136,5 +138,6 @@ func NewGame(c *Config) *Game {
 		ball:    NewBall(c.BallSpeed, c.BallAcceleration),
 		paddle1: NewPaddle(paddleMargin),
 		paddle2: NewPaddle(screenWidth - paddleMargin - paddleWidth),
+		net:     NewNet(c),
 	}
 }
