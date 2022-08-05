@@ -13,10 +13,11 @@ import (
 type Net struct {
 	config *Config
 	ID     string
+	peers  map[string]*net.Addr
 }
 
 func (n *Net) announce(iface string) {
-	log.Printf("announce %s on %s", n.ID, iface)
+	// log.Printf("announce %s on %s", n.ID, iface)
 
 	daddr, err := net.ResolveUDPAddr("udp6", "[ff12::7179%"+iface+"]:7179")
 	if err != nil {
@@ -73,12 +74,24 @@ func (n *Net) listen(iface string) {
 
 	bs := make([]byte, 14)
 	for {
-		n, _, addr, err := pconn.ReadFrom(bs)
+		c, _, paddr, err := pconn.ReadFrom(bs)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		log.Printf("recv %d bytes from %s", n, addr)
+		// log.Printf("recv %d bytes from %s", c, paddr)
+
+		if c != 14 {
+			continue
+		}
+
+		id := string(bs)
+		if id == n.ID || n.peers[id] != nil {
+			continue
+		}
+
+		n.peers[id] = &paddr
+		log.Printf("peer %s joined", id)
 	}
 }
 
@@ -95,5 +108,9 @@ func getRandomID() string {
 }
 
 func NewNet(config *Config) *Net {
-	return &Net{config, getRandomID()}
+	return &Net{
+		config: config,
+		ID:     getRandomID(),
+		peers:  make(map[string]*net.Addr),
+	}
 }
