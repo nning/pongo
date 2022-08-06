@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"sync"
 	"time"
 
 	"golang.org/x/net/ipv6"
@@ -16,17 +17,16 @@ type Net struct {
 	peers  map[string]*net.Addr
 }
 
-func (n *Net) announce(iface string) {
-	// log.Printf("announce %s on %s", n.ID, iface)
+var peersMutex = &sync.Mutex{}
 
-	daddr, err := net.ResolveUDPAddr("udp6", "[ff12::7179%"+iface+"]:7179")
+func (n *Net) announce(iface net.Interface) {
+	daddr, err := net.ResolveUDPAddr("udp6", "[ff12::7179%"+iface.Name+"]:7179")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	conn, err := net.DialUDP("udp6", nil, daddr)
 	if err != nil {
-		log.Println(err)
 		return
 	}
 	defer conn.Close()
@@ -36,7 +36,12 @@ func (n *Net) announce(iface string) {
 
 func (n *Net) Announce() {
 	for {
-		for _, iface := range n.config.ListenInterfaces {
+		ifaces, err := net.Interfaces()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, iface := range ifaces {
 			n.announce(iface)
 		}
 
@@ -44,8 +49,8 @@ func (n *Net) Announce() {
 	}
 }
 
-func (n *Net) listen(iface string) {
-	addr := "[ff12::7179%" + iface + "]:7179"
+func (n *Net) listen(iface net.Interface) {
+	addr := "[ff12::7179%" + iface.Name + "]:7179"
 
 	gaddr, err := net.ResolveUDPAddr("udp6", addr)
 	if err != nil {
@@ -58,18 +63,8 @@ func (n *Net) listen(iface string) {
 	}
 
 	pconn := ipv6.NewPacketConn(conn)
-
-	ifaces, err := net.Interfaces()
-	if err != nil {
+	if err := pconn.JoinGroup(&iface, gaddr); err != nil {
 		log.Fatal(err)
-	}
-
-	for _, i := range ifaces {
-		if i.Name == iface {
-			if err := pconn.JoinGroup(&i, gaddr); err != nil {
-				log.Fatal(err)
-			}
-		}
 	}
 
 	bs := make([]byte, 14)
@@ -79,24 +74,31 @@ func (n *Net) listen(iface string) {
 			log.Fatal(err)
 		}
 
-		// log.Printf("recv %d bytes from %s", c, paddr)
-
 		if c != 14 {
 			continue
 		}
 
 		id := string(bs)
+		peersMutex.Lock()
 		if id == n.ID || n.peers[id] != nil {
+			peersMutex.Unlock()
 			continue
 		}
 
 		n.peers[id] = &paddr
-		log.Printf("peer %s joined", id)
+		peersMutex.Unlock()
+
+		log.Printf("peer %s joined: %s", id, paddr.String())
 	}
 }
 
 func (n *Net) Listen() {
-	for _, iface := range n.config.ListenInterfaces {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, iface := range ifaces {
 		go n.listen(iface)
 	}
 }
