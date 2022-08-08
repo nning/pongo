@@ -60,12 +60,12 @@ func (n *Net) sendState(game *Game) {
 		log.Fatal(err)
 	}
 
-	c, err := conn.Write(buf.Bytes())
+	_, err = conn.Write(buf.Bytes())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("send state %v (size %v)", n.peer, c)
+	// log.Printf("send state %v (size %v)", n.peer, c)
 }
 
 func (n *Net) SendState(game *Game) {
@@ -186,7 +186,10 @@ func (n *Net) listenAnnounce(iface net.Interface) {
 func (n *Net) listenState(id string) {
 	log.Printf("listen for state from %v\n", id)
 
-	conn, err := net.ListenPacket("udp6", n.peer.String())
+	var addr net.UDPAddr = *n.peer
+	addr.IP = net.IPv6zero
+
+	conn, err := net.ListenPacket("udp6", addr.String())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -211,7 +214,7 @@ func (n *Net) listenState(id string) {
 			continue
 		}
 
-		log.Printf("recv from %v: %v\n", id, msg)
+		// log.Printf("recv from %v: %v\n", id, msg)
 
 		n.LastState = msg.Game
 	}
@@ -235,9 +238,14 @@ func getRandomID() string {
 }
 
 func NewNet(config *Config) *Net {
-	p, err := rand.Int(rand.Reader, big.NewInt(65534-1024))
+	rp, err := rand.Int(rand.Reader, big.NewInt(65534-1024))
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	p := int(rp.Int64()) + 1024
+	if config.ListenPort != 0 {
+		p = config.ListenPort
 	}
 
 	return &Net{
@@ -245,6 +253,6 @@ func NewNet(config *Config) *Net {
 		id:              getRandomID(),
 		peerMutex:       sync.Mutex{},
 		announceEnabled: true,
-		announcePort:    int(p.Int64()) + 1024,
+		announcePort:    p,
 	}
 }

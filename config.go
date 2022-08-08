@@ -17,6 +17,7 @@ type Config struct {
 	Debug            bool    `yaml:"debug"`
 	BallSpeed        float64 `yaml:"ballSpeed"`
 	BallAcceleration float64 `yaml:"ballAcceleration"`
+	ListenPort       int     `yaml:"listenPort"`
 
 	path string
 }

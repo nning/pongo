@@ -12,3 +12,8 @@ ballSpeed: 5
 
 # Ball acceleration on paddle collision (float64 value of factor)
 ballAcceleration: 1.1
+
+# Port to listen on for remote multiplayer state sync, only set this statically
+# if you have to configure a firewall (allow incoming traffic on 7178/udp for
+# state sync and 7179/udp for discovery). Set this only on one machine.
+listenPort: 7178
