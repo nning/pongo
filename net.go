@@ -21,6 +21,7 @@ type Net struct {
 	peerMutex       sync.Mutex
 	announceEnabled bool
 	announcePort    int
+	LastState       *Game
 }
 
 type Announce struct {
@@ -29,16 +30,24 @@ type Announce struct {
 }
 
 type State struct {
-	ID       string
-	Paddle2Y float64
+	ID   string
+	Game *Game
 }
 
-func (n *Net) sendState(ball *Ball, paddle1 *Paddle, paddle2 *Paddle) {
+func (msg State) String() string {
+	return fmt.Sprintf("{%v, Ball:{%v, %v}, Paddle1:{%v}, Paddle2:{%v}}", msg.ID, msg.Game.Ball.X, msg.Game.Ball.Y, msg.Game.Paddle1.Y, msg.Game.Paddle2.Y)
+}
+
+func (n *Net) sendState(game *Game) {
 	if n.peer == nil {
 		return
 	}
 
-	conn, err := net.DialUDP("udp6", nil, n.peer)
+	// Copy Addr, use announce port as remote target port
+	var addr net.UDPAddr = *n.peer
+	addr.Port = n.announcePort
+
+	conn, err := net.DialUDP("udp6", nil, &addr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,7 +55,7 @@ func (n *Net) sendState(ball *Ball, paddle1 *Paddle, paddle2 *Paddle) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 
-	err = enc.Encode(State{n.id, paddle2.y})
+	err = enc.Encode(State{n.id, game})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,9 +68,9 @@ func (n *Net) sendState(ball *Ball, paddle1 *Paddle, paddle2 *Paddle) {
 	log.Printf("send state %v (size %v)", n.peer, c)
 }
 
-func (n *Net) SendState(ball *Ball, paddle1 *Paddle, paddle2 *Paddle) {
+func (n *Net) SendState(game *Game) {
 	for {
-		n.sendState(ball, paddle1, paddle2)
+		n.sendState(game)
 		time.Sleep(time.Second / 60)
 	}
 }
@@ -105,7 +114,7 @@ func (n *Net) Announce() {
 			n.announce(iface)
 		}
 
-		time.Sleep(time.Second)
+		time.Sleep(time.Second / 3)
 	}
 }
 
@@ -154,12 +163,20 @@ func (n *Net) listenAnnounce(iface net.Interface) {
 			continue
 		}
 
+		if n.announcePort == msg.Port {
+			log.Fatalf("port %v collision", msg.Port)
+		} else if n.announcePort < msg.Port {
+			game.mode = Left
+		} else {
+			game.mode = Right
+		}
+
 		n.peer = paddr.(*net.UDPAddr)
 		n.peer.Port = msg.Port
 
 		n.peerMutex.Unlock()
 
-		log.Printf("peer %s joined: %s", msg.ID, n.peer)
+		log.Printf("peer %s joined: %s (we are %v)", msg.ID, n.peer, game.mode)
 		n.announceEnabled = false // Concurrence safe?
 
 		go n.listenState(msg.ID)
@@ -174,7 +191,7 @@ func (n *Net) listenState(id string) {
 		log.Fatal(err)
 	}
 
-	bs := make([]byte, 256)
+	bs := make([]byte, 512)
 	for {
 		c, _, err := conn.ReadFrom(bs)
 		if err != nil {
@@ -190,8 +207,13 @@ func (n *Net) listenState(id string) {
 			log.Println(err)
 			continue
 		}
+		if msg.ID != id {
+			continue
+		}
 
 		log.Printf("recv from %v: %v\n", id, msg)
+
+		n.LastState = msg.Game
 	}
 }
 

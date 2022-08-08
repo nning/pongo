@@ -12,39 +12,39 @@ const (
 )
 
 type Ball struct {
-	rect
-	vector
-	speed        float64
-	acceleration float64
+	Rect
+	Vector
+	Speed        float64
+	Acceleration float64
 }
 
 func (b *Ball) Draw(screen *ebiten.Image) {
-	ebitenutil.DrawRect(screen, b.x, b.y, ballSize, ballSize, color.White)
+	ebitenutil.DrawRect(screen, b.X, b.Y, ballSize, ballSize, color.White)
 }
 
 func (b *Ball) Move(g *Game) int {
-	dx := b.vx * b.speed
-	dy := b.vy * b.speed
+	dx := b.VX * b.Speed
+	dy := b.VY * b.Speed
 
-	screenCollision := checkBounds(b.x+dx, b.y+dy, ballSize, ballSize)
+	screenCollision := checkBounds(b.X+dx, b.Y+dy, ballSize, ballSize)
 
 	switch screenCollision {
 	case 0:
-		b.x += dx
-		b.y += dy
+		b.X += dx
+		b.Y += dy
 	case 1: // top
-		b.vy = -b.vy
+		b.VY = -b.VY
 	case 2: // right
-		b.vx = -b.vx
+		b.VX = -b.VX
 	case 3: // bottom
-		b.vy = -b.vy
+		b.VY = -b.VY
 	case 4: // left
-		b.vx = -b.vx
+		b.VX = -b.VX
 	}
 
-	if rectCollision(&b.rect, &g.paddle1.rect) || rectCollision(&b.rect, &g.paddle2.rect) {
-		b.vx = -b.vx
-		b.speed *= b.acceleration
+	if rectCollision(&b.Rect, &g.Paddle1.Rect) || rectCollision(&b.Rect, &g.Paddle2.Rect) {
+		b.VX = -b.VX
+		b.Speed *= b.Acceleration
 	}
 
 	return screenCollision
@@ -52,9 +52,9 @@ func (b *Ball) Move(g *Game) int {
 
 func NewBall(speed, acceleration float64) *Ball {
 	return &Ball{
-		rect:         rect{screenWidth/2 - ballSize/2, screenHeight/2 - ballSize/2, ballSize, ballSize},
-		vector:       vector{1, 1},
-		speed:        speed,
-		acceleration: acceleration,
+		Rect:         Rect{screenWidth/2 - ballSize/2, screenHeight/2 - ballSize/2, ballSize, ballSize},
+		Vector:       Vector{1, 1},
+		Speed:        speed,
+		Acceleration: acceleration,
 	}
 }

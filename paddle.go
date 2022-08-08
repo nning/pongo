@@ -15,29 +15,29 @@ const (
 )
 
 type Paddle struct {
-	rect
-	score int
+	Rect
+	Score int
 }
 
-func (p *Paddle) Draw(screen *ebiten.Image) {
-	ebitenutil.DrawRect(screen, p.x, p.y, p.w, p.h, color.White)
+func (p *Paddle) Draw(screen *ebiten.Image, color color.Color) {
+	ebitenutil.DrawRect(screen, p.X, p.Y, p.W, p.H, color)
 }
 
 func (p *Paddle) Move(dy float64) {
-	if inScreenBounds(p.x, p.y+dy, p.w, p.h) {
-		p.y += dy
+	if inScreenBounds(p.X, p.Y+dy, p.W, p.H) {
+		p.Y += dy
 		return
 	}
 
 	if dy > 0 {
-		p.y = screenHeight - paddleHeight
+		p.Y = screenHeight - paddleHeight
 	} else {
-		p.y = 0
+		p.Y = 0
 	}
 }
 
 func NewPaddle(x float64) *Paddle {
-	return &Paddle{rect{x, screenHeight/2 - paddleHeight/2, paddleWidth, paddleHeight}, 0}
+	return &Paddle{Rect{x, screenHeight/2 - paddleHeight/2, paddleWidth, paddleHeight}, 0}
 }
 
 func movePaddle(key ebiten.Key, p *Paddle, dy float64) {

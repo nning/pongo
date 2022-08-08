@@ -11,12 +11,14 @@ const (
 	screenHeight = 1080
 )
 
-type rect struct {
-	x, y, w, h float64
+var game *Game
+
+type Rect struct {
+	X, Y, W, H float64
 }
 
-type vector struct {
-	vx, vy float64
+type Vector struct {
+	VX, VY float64
 }
 
 func main() {
@@ -26,13 +28,13 @@ func main() {
 	ebiten.SetWindowSize(c.Width, c.Height)
 	ebiten.SetFullscreen(c.Fullscreen)
 
-	g := NewGame(c)
+	game = NewGame(c)
 
-	go g.net.Announce()
-	g.net.Listen()
-	go g.net.SendState(g.ball, g.paddle1, g.paddle2)
+	go game.net.Announce()
+	game.net.Listen()
+	go game.net.SendState(game)
 
-	if err := ebiten.RunGame(g); err != nil {
+	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}
 	// select {}

@@ -2,21 +2,44 @@ package main
 
 import (
 	"fmt"
+	"image/color"
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
+const (
+	Solo GameMode = iota
+	Left
+	Right
+)
+
+type GameMode int
+
+func (g GameMode) String() string {
+	switch g {
+	case Solo:
+		return "Solo"
+	case Left:
+		return "Left"
+	case Right:
+		return "Right"
+	}
+
+	return "Unknown"
+}
+
 type Game struct {
-	config           *Config
-	ball             *Ball
-	paddle1, paddle2 *Paddle
+	config *Config
+	mode   GameMode
+	net    *Net
+
+	Ball             *Ball
+	Paddle1, Paddle2 *Paddle
 
 	gamepadIDsBuf []ebiten.GamepadID
 	gamepadIDs    map[ebiten.GamepadID]struct{}
-
-	net *Net
 }
 
 func inScreenBounds(x, y, w, h float64) bool {
@@ -43,8 +66,8 @@ func checkBounds(x, y, w, h float64) int {
 	return 0
 }
 
-func rectCollision(r1, r2 *rect) bool {
-	return r1.x+r1.w >= r2.x && r1.x <= r2.x+r2.w && r1.y+r1.h >= r2.y && r1.y <= r2.y+r2.h
+func rectCollision(r1, r2 *Rect) bool {
+	return r1.X+r1.W >= r2.X && r1.X <= r2.X+r2.W && r1.Y+r1.H >= r2.Y && r1.Y <= r2.Y+r2.H
 }
 
 func (g *Game) handleGamepadConnections() {
@@ -66,14 +89,18 @@ func (g *Game) handleGamepadConnections() {
 
 func (g *Game) handleGamepadInput() {
 	for id := range g.gamepadIDs {
-		leftStickY := ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickVertical)
-		if leftStickY > 0.1 || leftStickY < -0.1 {
-			g.paddle1.Move(leftStickY * paddleSpeed)
+		if g.mode == Solo || g.mode == Left {
+			leftStickY := ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisLeftStickVertical)
+			if leftStickY > 0.1 || leftStickY < -0.1 {
+				g.Paddle1.Move(leftStickY * paddleSpeed)
+			}
 		}
 
-		rightStickY := ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisRightStickVertical)
-		if rightStickY > 0.1 || rightStickY < -0.1 {
-			g.paddle2.Move(rightStickY * paddleSpeed)
+		if g.mode == Solo || g.mode == Right {
+			rightStickY := ebiten.StandardGamepadAxisValue(id, ebiten.StandardGamepadAxisRightStickVertical)
+			if rightStickY > 0.1 || rightStickY < -0.1 {
+				g.Paddle2.Move(rightStickY * paddleSpeed)
+			}
 		}
 
 		if inpututil.IsStandardGamepadButtonJustPressed(id, ebiten.StandardGamepadButtonCenterLeft) {
@@ -90,17 +117,33 @@ func (g *Game) Update() error {
 	g.handleGamepadConnections()
 	g.handleGamepadInput()
 
-	movePaddle(ebiten.KeyW, g.paddle1, -paddleSpeed)
-	movePaddle(ebiten.KeyS, g.paddle1, paddleSpeed)
+	if g.mode == Solo || g.mode == Left {
+		movePaddle(ebiten.KeyW, g.Paddle1, -paddleSpeed)
+		movePaddle(ebiten.KeyS, g.Paddle1, paddleSpeed)
+	}
 
-	movePaddle(ebiten.KeyUp, g.paddle2, -paddleSpeed)
-	movePaddle(ebiten.KeyDown, g.paddle2, paddleSpeed)
+	if g.mode == Solo || g.mode == Right {
+		movePaddle(ebiten.KeyUp, g.Paddle2, -paddleSpeed)
+		movePaddle(ebiten.KeyDown, g.Paddle2, paddleSpeed)
+	}
 
-	screenCollision := g.ball.Move(g)
-	if screenCollision == 2 {
-		g.paddle1.score++
-	} else if screenCollision == 4 {
-		g.paddle2.score++
+	if g.mode == Solo || g.mode == Left {
+		screenCollision := g.Ball.Move(g)
+		if screenCollision == 2 {
+			g.Paddle1.Score++
+		} else if screenCollision == 4 {
+			g.Paddle2.Score++
+		}
+	}
+
+	if g.net.LastState != nil {
+		if g.mode == Left {
+			g.Paddle2.Y = g.net.LastState.Paddle2.Y
+		} else {
+			g.Ball = g.net.LastState.Ball
+			g.Paddle1 = g.net.LastState.Paddle1
+			g.Paddle2.Score = g.net.LastState.Paddle2.Score
+		}
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
@@ -115,17 +158,25 @@ func (g *Game) Update() error {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
 
-	ebiten.SetWindowTitle(fmt.Sprintf("%d : %d", g.paddle1.score, g.paddle2.score))
+	ebiten.SetWindowTitle(fmt.Sprintf("%d : %d", g.Paddle1.Score, g.Paddle2.Score))
 
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	for _, p := range []*Paddle{g.paddle1, g.paddle2} {
-		p.Draw(screen)
+	var c1 color.Color = color.White
+	var c2 color.Color = color.White
+
+	if g.mode == Left {
+		c1 = color.RGBA{0, 255, 0, 255}
+	} else if g.mode == Right {
+		c2 = color.RGBA{0, 255, 0, 255}
 	}
 
-	g.ball.Draw(screen)
+	g.Paddle1.Draw(screen, c1)
+	g.Paddle2.Draw(screen, c2)
+
+	g.Ball.Draw(screen)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -135,9 +186,10 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 func NewGame(c *Config) *Game {
 	return &Game{
 		config:  c,
-		ball:    NewBall(c.BallSpeed, c.BallAcceleration),
-		paddle1: NewPaddle(paddleMargin),
-		paddle2: NewPaddle(screenWidth - paddleMargin - paddleWidth),
+		Ball:    NewBall(c.BallSpeed, c.BallAcceleration),
+		Paddle1: NewPaddle(paddleMargin),
+		Paddle2: NewPaddle(screenWidth - paddleMargin - paddleWidth),
+		mode:    Solo,
 		net:     NewNet(c),
 	}
 }
