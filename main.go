@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -28,9 +30,10 @@ func main() {
 
 	go g.net.Announce()
 	g.net.Listen()
+	go g.net.SendState(g.ball, g.paddle1, g.paddle2)
 
-	// if err := ebiten.RunGame(g); err != nil {
-	// 	log.Fatal(err)
-	// }
-	select {}
+	if err := ebiten.RunGame(g); err != nil {
+		log.Fatal(err)
+	}
+	// select {}
 }

@@ -10,14 +10,13 @@ import (
 )
 
 type Config struct {
-	Resolution       string   `yaml:"resolution"`
-	Width            int      `yaml:"width"`
-	Height           int      `yaml:"height"`
-	Fullscreen       bool     `yaml:"fullscreen"`
-	Debug            bool     `yaml:"debug"`
-	BallSpeed        float64  `yaml:"ballSpeed"`
-	BallAcceleration float64  `yaml:"ballAcceleration"`
-	ListenInterfaces []string `yaml:"listenInterfaces"`
+	Resolution       string  `yaml:"resolution"`
+	Width            int     `yaml:"width"`
+	Height           int     `yaml:"height"`
+	Fullscreen       bool    `yaml:"fullscreen"`
+	Debug            bool    `yaml:"debug"`
+	BallSpeed        float64 `yaml:"ballSpeed"`
+	BallAcceleration float64 `yaml:"ballAcceleration"`
 
 	path string
 }
