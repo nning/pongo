@@ -19,8 +19,10 @@ cd ..
 [ ! -f ${GO_VERSION}.linux-amd64.tar.gz ] &&
     curl --location --remote-name https://golang.org/dl/${GO_VERSION}.linux-amd64.tar.gz
 
-# Build for amd64.
-(cd .cache/${STEAM_RUNTIME_VERSION}; docker build -f ${FILENAME}.Dockerfile -t steamrt_${STEAM_RUNTIME_NAME}_amd64:latest .)
+cd ${STEAM_RUNTIME_VERSION}
+docker build -f ${FILENAME}.Dockerfile -t steamrt_${STEAM_RUNTIME_NAME}_amd64:latest .
+
+cd ../..
 docker run --rm --workdir=/work --volume $(pwd):/work:z steamrt_${STEAM_RUNTIME_NAME}_amd64:latest /bin/sh -c "
 export PATH=\$PATH:/usr/local/go/bin
 export CGO_CFLAGS=-std=gnu99
