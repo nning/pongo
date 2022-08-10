@@ -1,4 +1,4 @@
-.PHONY: install_dependencies run clean deck
+.PHONY: install_dependencies run clean deck test
 
 SOURCES = $(shell find . -name \*.go)
 BIN = pongo
@@ -21,3 +21,6 @@ install_dependencies:
 
 clean:
 	rm -f $(BIN)
+
+test:
+	go test
