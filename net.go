@@ -34,11 +34,35 @@ type State struct {
 	Game *Game
 }
 
+var lastStateSend []byte
+var lastStateRecv []byte
+
 func (msg State) String() string {
 	return fmt.Sprintf("{%v, Ball:{%v, %v}, Paddle1:{%v}, Paddle2:{%v}}", msg.ID, msg.Game.Ball.X, msg.Game.Ball.Y, msg.Game.Paddle1.Y, msg.Game.Paddle2.Y)
 }
 
-func (n *Net) sendState(game *Game) {
+// diff returns the changed bytes in inc compared to base as map of byte index
+// to changed byte value
+func diff(base, inc []byte) map[int]byte {
+	i := 0
+	m := make(map[int]byte)
+
+	for ; i < len(base) && i < len(inc); i++ {
+		if base[i] != inc[i] {
+			m[i] = inc[i]
+		}
+	}
+
+	if i < len(inc) {
+		for ; i < len(inc); i++ {
+			m[i] = inc[i]
+		}
+	}
+
+	return m
+}
+
+func (n *Net) sendState(game *Game, seq int) {
 	if n.peer == nil {
 		return
 	}
@@ -60,18 +84,45 @@ func (n *Net) sendState(game *Game) {
 		log.Fatal(err)
 	}
 
-	_, err = conn.Write(buf.Bytes())
+	bs := buf.Bytes()
+	var d1 map[int]byte
+
+	if lastStateSend != nil && seq > 0 {
+		d1 = diff(lastStateSend, bs)
+
+		var buf2 bytes.Buffer
+		enc2 := gob.NewEncoder(&buf2)
+
+		err = enc2.Encode(d1)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		bs = buf2.Bytes()
+	}
+
+	_, err = conn.Write(append([]byte{byte(seq)}, bs...))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// log.Printf("send state %v (size %v)", n.peer, c)
+	// log.Printf("send state %v (size %v, diff %v)", n.peer, c, len(d1))
+
+	if seq == 0 {
+		lastStateSend = bs
+	}
 }
 
 func (n *Net) SendState(game *Game) {
+	s := 0
+
 	for {
-		n.sendState(game)
+		n.sendState(game, s)
+
 		time.Sleep(time.Second / 60)
+
+		s += 1
+		s %= 60
 	}
 }
 
@@ -201,22 +252,71 @@ func (n *Net) listenState(id string) {
 			log.Fatal(err)
 		}
 
-		buf := bytes.NewBuffer(bs[:c])
+		seq := bs[0]
+		log.Println(seq)
+
+		buf := bytes.NewBuffer(bs[1:c])
 		dec := gob.NewDecoder(buf)
 
-		var msg State
-		err = dec.Decode(&msg)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		if msg.ID != id {
-			continue
-		}
+		if seq == 0 {
+			lastStateRecv = bs[1:c]
 
-		// log.Printf("recv from %v: %v\n", id, msg)
+			var msg State
+			err = dec.Decode(&msg)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			if msg.ID != id {
+				continue
+			}
 
-		n.LastState = msg.Game
+			log.Printf("recv full %v\n", msg)
+
+			n.LastState = msg.Game
+		} else {
+			var d map[int]byte
+			err = dec.Decode(&d)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+			log.Printf("recv diff %v\n", len(d))
+
+			var mbs []byte
+			var msg State
+
+			if len(lastStateRecv) == 0 {
+				continue
+			} else {
+				mbs = make([]byte, len(lastStateRecv))
+			}
+
+			copy(mbs, lastStateRecv)
+
+			for i, v := range d {
+				if i < len(mbs) {
+					mbs[i] = v
+				} else {
+					mbs = append(mbs, d[i])
+				}
+			}
+
+			buf := bytes.NewBuffer(mbs)
+			dec := gob.NewDecoder(buf)
+
+			err = dec.Decode(&msg)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			if msg.ID != id {
+				continue
+			}
+
+			log.Printf("recv diff %v\n", msg)
+		}
 	}
 }
 
