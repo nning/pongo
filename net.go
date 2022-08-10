@@ -34,12 +34,12 @@ type State struct {
 type Diff map[int]byte
 
 func (msg State) String() string {
-	return fmt.Sprintf("{%v, Ball:{%v, %v}, Paddle1:{%v}, Paddle2:{%v}}", msg.ID, msg.Game.Ball.X, msg.Game.Ball.Y, msg.Game.Paddle1.Y, msg.Game.Paddle2.Y)
+	return fmt.Sprintf("{%v, Ball: {%v, %v}, Paddle1: {%v}, Paddle2: {%v}}", msg.ID, msg.Game.Ball.X, msg.Game.Ball.Y, msg.Game.Paddle1.Y, msg.Game.Paddle2.Y)
 }
 
 // diff returns the changed bytes in inc compared to base as map of byte index
 // to changed byte value
-func diff(base, inc []byte) Diff {
+func diff(base, inc []byte) *Diff {
 	i := 0
 	m := make(Diff)
 
@@ -55,18 +55,18 @@ func diff(base, inc []byte) Diff {
 		}
 	}
 
-	return m
+	return &m
 }
 
-func patch(base []byte, diff Diff) []byte {
+func patch(base []byte, diff *Diff) []byte {
 	bs := make([]byte, len(base))
 	copy(bs, base)
 
-	for i, v := range diff {
+	for i, v := range *diff {
 		if i < len(bs) {
 			bs[i] = v
 		} else {
-			bs = append(bs, diff[i])
+			bs = append(bs, (*diff)[i])
 		}
 	}
 

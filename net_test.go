@@ -80,13 +80,23 @@ func TestEncodeDiffPatchDecode(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, float64(19), s.Game.Ball.X)
 
-	d := diff(bs1, bs2)
-	assert.Equal(t, 2, len(d))
+	d1 := diff(bs1, bs2)
+	assert.Equal(t, 2, len(*d1))
+	assert.Equal(t, &Diff{303: 0x33, 304: 0x40}, d1)
 
-	bs3 := patch(bs1, d)
-	assert.NotEqual(t, 0, len(bs3))
+	bs3, err := encode(d1)
+	assert.Nil(t, err)
 
-	s, err = decode[State](bs3)
+	d2, err := decode[Diff](bs3)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(*d2))
+	assert.Equal(t, &Diff{303: 0x33, 304: 0x40}, d2)
+
+	bs4 := patch(bs1, d2)
+	assert.NotEqual(t, 0, len(bs4))
+
+	s, err = decode[State](bs4)
 	assert.Nil(t, err)
 	assert.Equal(t, float64(19), s.Game.Ball.X)
+	assert.Equal(t, float64(2), s.Game.Ball.Y)
 }

@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var lastStateSend []byte
+var lastStateSent []byte
 
 func (n *Net) announce(iface net.Interface) {
 	daddr, err := net.ResolveUDPAddr("udp6", "[ff12::7179%"+iface.Name+"]:7179")
@@ -67,9 +67,9 @@ func (n *Net) sendState(game *Game, seq int) {
 		log.Fatal(err)
 	}
 
-	if lastStateSend != nil && seq > 0 {
-		d := diff(lastStateSend, bs)
-		bs, err = encode(&d)
+	if lastStateSent != nil && seq > 0 {
+		d := diff(lastStateSent, bs)
+		bs, err = encode(d)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -83,7 +83,7 @@ func (n *Net) sendState(game *Game, seq int) {
 	// log.Printf("send state %v (size %v, diff %v)", n.peer, c, len(d1))
 
 	if seq == 0 {
-		lastStateSend = bs
+		lastStateSent = bs
 	}
 }
 

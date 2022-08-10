@@ -40,7 +40,6 @@ func (n *Net) listenAnnounce(iface net.Interface) {
 
 		msg, err := decode[Announce](bs[:c])
 		if err != nil {
-			log.Println(err)
 			continue
 		}
 
@@ -81,59 +80,46 @@ func (n *Net) listenState(id string) {
 		log.Fatal(err)
 	}
 
-	bs := make([]byte, 512)
 	for {
+		bs := make([]byte, 512)
 		c, _, err := conn.ReadFrom(bs)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		seq := bs[0]
-		log.Println(seq)
+		var msg *State
 
 		if seq == 0 {
 			lastStateRecv = bs[1:c]
 
-			msg, err := decode[State](bs[1:c])
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			if msg.ID != id {
+			msg, err = decode[State](bs[1:c])
+			if err != nil || msg.ID != id {
 				continue
 			}
 
-			log.Printf("recv full %v\n", msg)
-
-			n.LastState = msg.Game
+			// log.Printf("recv full %v\n", msg)
 		} else {
 			d, err := decode[Diff](bs[1:c])
-			if err != nil {
-				log.Println(err)
+			if err != nil || len(lastStateRecv) == 0 || len(*d) == 0 {
 				continue
 			}
 
-			log.Printf("recv diff len %v\n", len(*d))
-
-			if len(lastStateRecv) == 0 {
+			bs := patch(lastStateRecv, d)
+			if len(bs) == 0 {
 				continue
 			}
 
-			mbs := patch(lastStateRecv, *d)
-			if len(mbs) == 0 {
-				log.Fatal("patch failed")
-			}
-
-			msg, err := decode[State](mbs)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			if msg.ID != id {
+			msg, err = decode[State](bs)
+			if err != nil || msg.ID != id {
 				continue
 			}
 
-			log.Printf("recv diff %v\n", msg)
+			// log.Printf("recv diff %v\n", msg)
+		}
+
+		if msg != nil {
+			n.LastState = msg.Game
 		}
 	}
 }
