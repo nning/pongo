@@ -30,9 +30,11 @@ func main() {
 
 	game = NewGame(c)
 
-	go game.net.Announce()
-	game.net.Listen()
-	go game.net.SendState(game)
+	if !c.Offline {
+		go game.net.Announce()
+		game.net.Listen()
+		go game.net.SendState(game)
+	}
 
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)

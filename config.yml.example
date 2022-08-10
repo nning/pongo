@@ -17,3 +17,6 @@ ballAcceleration: 1.1
 # if you have to configure a firewall (allow incoming traffic on 7178/udp for
 # state sync and 7179/udp for discovery). Set this only on one machine.
 listenPort: 7178
+
+# Disable network multiplayer
+offline: false

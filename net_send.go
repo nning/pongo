@@ -93,9 +93,9 @@ func (n *Net) SendState(game *Game) {
 	for {
 		n.sendState(game, s)
 
-		time.Sleep(time.Second / 60)
+		time.Sleep(time.Second / 30)
 
 		s += 1
-		s %= 30 // send key state 2 times a second
+		s %= 30
 	}
 }

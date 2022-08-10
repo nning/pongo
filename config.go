@@ -18,6 +18,7 @@ type Config struct {
 	BallSpeed        float64 `yaml:"ballSpeed"`
 	BallAcceleration float64 `yaml:"ballAcceleration"`
 	ListenPort       int     `yaml:"listenPort"`
+	Offline          bool    `yaml:"offline"`
 
 	path string
 }
@@ -59,6 +60,7 @@ func NewConfig() *Config {
 		Fullscreen:       false,
 		BallSpeed:        5,
 		BallAcceleration: 1.1,
+		Offline:          false,
 
 		path: "config.yml",
 	}
