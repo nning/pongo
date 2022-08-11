@@ -1,14 +1,14 @@
 package main
 
 import (
-	"bytes"
 	"crypto/rand"
-	"encoding/gob"
 	"fmt"
 	"log"
 	"math/big"
 	"net"
 	"sync"
+
+	"github.com/fxamacker/cbor/v2"
 )
 
 type Net struct {
@@ -74,11 +74,8 @@ func patch(base []byte, diff *Diff) []byte {
 }
 
 func decode[T any](bs []byte) (*T, error) {
-	buf := bytes.NewBuffer(bs)
-	dec := gob.NewDecoder(buf)
-
 	var t T
-	err := dec.Decode(&t)
+	err := cbor.Unmarshal(bs, &t)
 	if err != nil {
 		return nil, err
 	}
@@ -87,15 +84,12 @@ func decode[T any](bs []byte) (*T, error) {
 }
 
 func encode[T any](t *T) ([]byte, error) {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-
-	err := enc.Encode(t)
+	buf, err := cbor.Marshal(t)
 	if err != nil {
 		return nil, err
 	}
 
-	return buf.Bytes(), nil
+	return buf, nil
 }
 
 func getRandomID() string {

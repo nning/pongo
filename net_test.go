@@ -1,10 +1,9 @@
 package main
 
 import (
-	"bytes"
-	"encoding/gob"
 	"testing"
 
+	"github.com/fxamacker/cbor/v2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -94,11 +93,10 @@ func TestPatch(t *testing.T) {
 }
 
 func TestDecode(t *testing.T) {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	enc.Encode(state)
+	buf, err := cbor.Marshal(state)
+	assert.Nil(t, err)
 
-	msg, err := decode[State](buf.Bytes())
+	msg, err := decode[State](buf)
 	assert.Nil(t, err)
 	assert.Equal(t, state, msg)
 }
@@ -128,7 +126,7 @@ func TestEncodeDiffPatchDecode(t *testing.T) {
 
 	d1 := diff(bs1, bs2)
 	assert.Equal(t, 2, len(*d1))
-	assert.Equal(t, &Diff{303: 0x33, 304: 0x40}, d1)
+	assert.Equal(t, &Diff{34: 0x40, 35: 0x33}, d1)
 
 	bs3, err := encode(d1)
 	assert.Nil(t, err)
@@ -136,7 +134,7 @@ func TestEncodeDiffPatchDecode(t *testing.T) {
 	d2, err := decode[Diff](bs3)
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(*d2))
-	assert.Equal(t, &Diff{303: 0x33, 304: 0x40}, d2)
+	assert.Equal(t, &Diff{34: 0x40, 35: 0x33}, d2)
 
 	bs4 := patch(bs1, d2)
 	assert.NotEqual(t, 0, len(bs4))
