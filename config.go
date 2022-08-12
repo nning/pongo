@@ -10,15 +10,18 @@ import (
 )
 
 type Config struct {
-	Resolution       string  `yaml:"resolution"`
-	Width            int     `yaml:"width"`
-	Height           int     `yaml:"height"`
-	Fullscreen       bool    `yaml:"fullscreen"`
-	Debug            bool    `yaml:"debug"`
-	BallSpeed        float64 `yaml:"ballSpeed"`
-	BallAcceleration float64 `yaml:"ballAcceleration"`
-	ListenPort       int     `yaml:"listenPort"`
-	Offline          bool    `yaml:"offline"`
+	Resolution             string  `yaml:"resolution"`
+	Width                  int     `yaml:"width"`
+	Height                 int     `yaml:"height"`
+	Fullscreen             bool    `yaml:"fullscreen"`
+	Debug                  bool    `yaml:"debug"`
+	BallSpeed              float64 `yaml:"ballSpeed"`
+	BallAcceleration       float64 `yaml:"ballAcceleration"`
+	ListenPort             int     `yaml:"listenPort"`
+	Offline                bool    `yaml:"offline"`
+	AnnounceFrequency      int     `yaml:"announceFrequency"`
+	StateSyncFrequency     int     `yaml:"stateSyncFrequency"`
+	StateFullSyncFrequency int     `yaml:"stateFullSyncFrequency"`
 
 	path string
 }
@@ -54,13 +57,16 @@ func (c *Config) Load() *Config {
 
 func NewConfig() *Config {
 	return &Config{
-		Resolution:       "1280x720",
-		Width:            1280,
-		Height:           720,
-		Fullscreen:       false,
-		BallSpeed:        5,
-		BallAcceleration: 1.1,
-		Offline:          false,
+		Resolution:             "1280x720",
+		Width:                  1280,
+		Height:                 720,
+		Fullscreen:             false,
+		BallSpeed:              5,
+		BallAcceleration:       1.1,
+		Offline:                false,
+		AnnounceFrequency:      3,
+		StateSyncFrequency:     30,
+		StateFullSyncFrequency: 2,
 
 		path: "config.yml",
 	}

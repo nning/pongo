@@ -45,7 +45,7 @@ func (n *Net) Announce() {
 			n.announce(iface)
 		}
 
-		time.Sleep(time.Second / 3)
+		time.Sleep(time.Second / time.Duration(n.config.AnnounceFrequency))
 	}
 }
 
@@ -97,9 +97,9 @@ func (n *Net) SendState(game *Game) {
 	for {
 		n.sendState(game, s)
 
-		time.Sleep(time.Second / 30)
+		time.Sleep(time.Second / time.Duration(n.config.StateSyncFrequency))
 
 		s += 1
-		s %= 30
+		s %= 60 / n.config.StateFullSyncFrequency
 	}
 }

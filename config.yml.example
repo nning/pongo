@@ -20,3 +20,8 @@ listenPort: 7178
 
 # Disable network multiplayer
 offline: false
+
+# Tweak network announce and state sync settings (frequency in Hz)
+announceFrequency: 3
+stateSyncFrequency: 30
+stateFullSyncFrequency: 2
