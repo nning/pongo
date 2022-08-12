@@ -1,9 +1,10 @@
 package main
 
 import (
-	"log"
+	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -27,6 +28,14 @@ func main() {
 	c := NewConfig().Load()
 	ebiten.SetWindowSize(c.Width, c.Height)
 	ebiten.SetFullscreen(c.Fullscreen)
+
+	if len(os.Args) > 1 && os.Args[1] == "-d" {
+		c.Debug = true
+	}
+
+	if c.Debug {
+		log.SetLevel(log.DebugLevel)
+	}
 
 	game = NewGame(c)
 

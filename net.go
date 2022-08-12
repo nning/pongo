@@ -3,12 +3,12 @@ package main
 import (
 	"crypto/rand"
 	"fmt"
-	"log"
 	"math/big"
 	"net"
 	"sync"
 
 	"github.com/fxamacker/cbor/v2"
+	log "github.com/sirupsen/logrus"
 )
 
 type Net struct {

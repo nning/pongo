@@ -1,9 +1,10 @@
 package main
 
 import (
-	"log"
 	"net"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var lastStateSent []byte
@@ -30,7 +31,7 @@ func (n *Net) announce(iface net.Interface) {
 		log.Fatal(err)
 	}
 
-	// log.Printf("announce %v on %v (port %v)\n", n.id, iface.Name, n.announcePort)
+	log.Debugf("announce %v on %v (port %v)\n", n.id, iface.Name, n.announcePort)
 }
 
 func (n *Net) Announce() {
@@ -67,20 +68,23 @@ func (n *Net) sendState(game *Game, seq int) {
 		log.Fatal(err)
 	}
 
+	dl := -1
 	if lastStateSent != nil && seq > 0 {
 		d := diff(lastStateSent, bs)
 		bs, err = encode(d)
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		dl = len(*d)
 	}
 
-	_, err = conn.Write(append([]byte{byte(seq)}, bs...))
+	c, err := conn.Write(append([]byte{byte(seq)}, bs...))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// log.Printf("send state %v (size %v, diff %v)", n.peer, c, len(d1))
+	log.Debugf("send state %v (size %v, diff %v)", n.peer, c, dl)
 
 	if seq == 0 {
 		lastStateSent = bs

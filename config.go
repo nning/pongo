@@ -2,10 +2,10 @@ package main
 
 import (
 	"io/ioutil"
-	"log"
 	"strconv"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )
 

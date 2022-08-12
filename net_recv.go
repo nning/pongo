@@ -1,9 +1,9 @@
 package main
 
 import (
-	"log"
 	"net"
 
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/ipv6"
 )
 
@@ -62,7 +62,7 @@ func (n *Net) listenAnnounce(iface net.Interface) {
 
 		n.peerMutex.Unlock()
 
-		log.Printf("peer %s joined: %s (we are %v)", msg.ID, n.peer, game.mode)
+		log.Infof("peer %s joined: %s (we are %v)", msg.ID, n.peer, game.mode)
 		n.announceEnabled = false // Concurrence safe?
 
 		go n.listenState(msg.ID)
@@ -98,7 +98,7 @@ func (n *Net) listenState(id string) {
 				continue
 			}
 
-			// log.Printf("recv full %v\n", msg)
+			log.Debugf("recv full %v\n", msg)
 		} else {
 			d, err := decode[Diff](bs[1:c])
 			if err != nil || len(lastStateRecv) == 0 || len(*d) == 0 {
@@ -115,7 +115,7 @@ func (n *Net) listenState(id string) {
 				continue
 			}
 
-			// log.Printf("recv diff %v\n", msg)
+			log.Debugf("recv diff %v\n", msg)
 		}
 
 		if msg != nil {
