@@ -45,6 +45,8 @@ func main() {
 		go game.net.SendState(game)
 	}
 
+	go game.RecordFPS()
+
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}

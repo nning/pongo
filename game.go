@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"os"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -40,6 +41,8 @@ type Game struct {
 
 	gamepadIDsBuf []ebiten.GamepadID
 	gamepadIDs    map[ebiten.GamepadID]struct{}
+
+	fps float64
 }
 
 func inScreenBounds(x, y, w, h float64) bool {
@@ -158,8 +161,6 @@ func (g *Game) Update() error {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
 
-	ebiten.SetWindowTitle(fmt.Sprintf("%d : %d", g.Paddle1.Score, g.Paddle2.Score))
-
 	return nil
 }
 
@@ -177,10 +178,19 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.Paddle2.Draw(screen, c2)
 
 	g.Ball.Draw(screen)
+
+	ebiten.SetWindowTitle(fmt.Sprintf("%d : %d (%.2f FPS)", g.Paddle1.Score, g.Paddle2.Score, g.fps))
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return screenWidth, screenHeight
+}
+
+func (g *Game) RecordFPS() {
+	for {
+		g.fps = ebiten.CurrentFPS()
+		time.Sleep(time.Second)
+	}
 }
 
 func NewGame(c *Config) *Game {
