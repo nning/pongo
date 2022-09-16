@@ -25,3 +25,7 @@ offline: false
 announceFrequency: 3
 stateSyncFrequency: 30
 stateFullSyncFrequency: 2
+
+# Control rate of update (vsync) and draw calls (ticks)
+disableVSync: false
+ticksPerSecond: 60

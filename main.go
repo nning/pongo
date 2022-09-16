@@ -47,6 +47,11 @@ func main() {
 
 	go game.RecordFPS()
 
+	ebiten.SetMaxTPS(c.TicksPerSecond)
+	if c.DisableVSync {
+		ebiten.SetFPSMode(ebiten.FPSModeVsyncOffMaximum)
+	}
+
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}

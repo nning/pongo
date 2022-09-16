@@ -22,6 +22,8 @@ type Config struct {
 	AnnounceFrequency      int     `yaml:"announceFrequency"`
 	StateSyncFrequency     int     `yaml:"stateSyncFrequency"`
 	StateFullSyncFrequency int     `yaml:"stateFullSyncFrequency"`
+	DisableVSync           bool    `yaml:"disableVSync"`
+	TicksPerSecond         int     `yaml:"ticksPerSecond"`
 
 	path string
 }
@@ -67,6 +69,8 @@ func NewConfig() *Config {
 		AnnounceFrequency:      3,
 		StateSyncFrequency:     30,
 		StateFullSyncFrequency: 2,
+		DisableVSync:           false,
+		TicksPerSecond:         60,
 
 		path: "config.yml",
 	}
