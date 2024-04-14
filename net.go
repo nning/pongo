@@ -43,6 +43,10 @@ func diff(base, inc []byte) *Diff {
 	i := 0
 	m := make(Diff)
 
+	if len(inc) == 0 {
+		return &m
+	}
+
 	for ; i < len(base) && i < len(inc); i++ {
 		if base[i] != inc[i] {
 			m[i] = inc[i]
@@ -52,6 +56,10 @@ func diff(base, inc []byte) *Diff {
 	if i < len(inc) {
 		for ; i < len(inc); i++ {
 			m[i] = inc[i]
+		}
+	} else {
+		for ; i < len(base); i++ {
+			m[-i] = 0
 		}
 	}
 
@@ -63,10 +71,14 @@ func patch(base []byte, diff *Diff) []byte {
 	copy(bs, base)
 
 	for i, v := range *diff {
-		if i < len(bs) {
-			bs[i] = v
-		} else {
-			bs = append(bs, (*diff)[i])
+		if i >= 0 {
+			if i < len(bs) {
+				bs[i] = v
+			} else {
+				bs = append(bs, (*diff)[i])
+			}
+		} else if i*-1 < len(bs) {
+			bs = bs[:i*-1]
 		}
 	}
 

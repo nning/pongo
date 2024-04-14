@@ -70,12 +70,17 @@ func TestDiff(t *testing.T) {
 	assert.Equal(t, 3, len(*d1))
 	assert.Equal(t, &Diff{0: 1, 1: 2, 2: 3}, d1)
 
-	// TODO
-	// bs1 = []byte{1, 2, 3}
-	// bs2 = []byte{1, 2}
-	// d1 = diff(bs1, bs2)
-	// assert.Equal(t, 1, len(*d1))
-	// assert.Equal(t, &Diff{2: 0}, d1)
+	bs1 = []byte{1, 2, 3}
+	bs2 = []byte{1, 2}
+	d1 = diff(bs1, bs2)
+	assert.Equal(t, 1, len(*d1))
+	assert.Equal(t, &Diff{-2: 0}, d1)
+
+	bs1 = []byte{1, 2, 3, 4, 5}
+	bs2 = []byte{1, 2}
+	d1 = diff(bs1, bs2)
+	assert.Equal(t, 3, len(*d1))
+	assert.Equal(t, &Diff{-2: 0, -3: 0, -4: 0}, d1)
 }
 
 func TestPatch(t *testing.T) {
@@ -90,6 +95,14 @@ func TestPatch(t *testing.T) {
 	bs1 = []byte{1, 2, 3}
 	bs2 = patch(bs1, &Diff{0: 2, 2: 2})
 	assert.Equal(t, []byte{2, 2, 2}, bs2)
+
+	bs1 = []byte{1, 2, 3}
+	bs2 = patch(bs1, &Diff{-2: 0})
+	assert.Equal(t, []byte{1, 2}, bs2)
+
+	bs1 = []byte{1, 2, 3, 4, 5}
+	bs2 = patch(bs1, &Diff{-2: 0, -3: 0, -4: 0})
+	assert.Equal(t, []byte{1, 2}, bs2)
 }
 
 func TestDecode(t *testing.T) {
