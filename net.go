@@ -58,7 +58,7 @@ func diff(base, inc []byte) *Diff {
 			m[i] = inc[i]
 		}
 	} else {
-		for ; i < len(base); i++ {
+		if i < len(base) {
 			m[-i] = 0
 		}
 	}
